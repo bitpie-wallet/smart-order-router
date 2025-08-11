@@ -1,12 +1,14 @@
-import { ChainId, Currency } from '@uniswap/sdk-core';
+import { Currency } from '@uniswap/sdk-core';
 import { DYNAMIC_FEE_FLAG, Pool } from '@uniswap/v4-sdk';
 import retry, { Options as RetryOptions } from 'async-retry';
+
+import { ChainId } from '../../globalChainId';
+import { StateView__factory } from '../../types/other/factories/StateView__factory';
 import { getAddress, log, STATE_VIEW_ADDRESSES } from '../../util';
 import { IMulticallProvider, Result } from '../multicall-provider';
+import { ILiquidity, ISlot0, PoolProvider } from '../pool-provider';
 import { ProviderConfig } from '../provider';
 
-import { StateView__factory } from '../../types/other/factories/StateView__factory';
-import { ILiquidity, ISlot0, PoolProvider } from '../pool-provider';
 import { V4SubgraphPool } from './subgraph-provider';
 
 type V4ISlot0 = ISlot0 & {
@@ -78,8 +80,7 @@ export class V4PoolProvider
     V4ILiquidity,
     V4PoolAccessor
   >
-  implements IV4PoolProvider
-{
+  implements IV4PoolProvider {
   // Computing pool id is slow as it requires hashing, encoding etc.
   // Addresses never change so can always be cached.
   private POOL_ID_CACHE: { [key: string]: string } = {};

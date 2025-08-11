@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ChainId, Token } from '@uniswap/sdk-core';
+import { Token } from '@uniswap/sdk-core';
 
+import { ChainId } from '../../globalChainId';
 import {
   BTC_BNB,
   BUSD_BNB,
@@ -10,7 +11,6 @@ import {
   DAI_UNICHAIN,
   ITokenProvider,
   USDB_BLAST,
-  USDCE_ZKSYNC,
   USDC_AVAX,
   USDC_BASE,
   USDC_BASE_SEPOLIA,
@@ -21,6 +21,8 @@ import {
   USDC_UNICHAIN_SEPOLIA,
   USDC_WORLDCHAIN,
   USDC_ZKSYNC,
+  USDCE_ZKSYNC,
+  USDT_BASE_TRON,
   USDT_BNB,
   USDT_MAINNET,
   USDT_MONAD_TESTNET,
@@ -31,6 +33,7 @@ import {
   WMATIC_POLYGON_MUMBAI,
 } from '../../providers/token-provider';
 import { WRAPPED_NATIVE_CURRENCY } from '../../util/chains';
+
 
 type ChainTokenList = {
   readonly [chainId in ChainId]: Token[];
@@ -120,6 +123,7 @@ export const BASES_TO_CHECK_TRADES_AGAINST = (
       WRAPPED_NATIVE_CURRENCY[ChainId.SONEIUM]!,
       USDC_SONEIUM,
     ],
+    [ChainId.TRON]: [WRAPPED_NATIVE_CURRENCY[ChainId.TRON]!, USDT_BASE_TRON],
   };
 };
 

@@ -1,4 +1,4 @@
-import { ChainId } from '@uniswap/sdk-core';
+import { ChainId } from '../../globalChainId';
 
 import { AlphaRouterConfig, LowerCaseStringArray } from './alpha-router';
 

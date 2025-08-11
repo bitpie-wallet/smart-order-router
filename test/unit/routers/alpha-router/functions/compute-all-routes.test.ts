@@ -41,7 +41,8 @@ import {
   WETH_USDT
 } from '../../../../test-util/mock-data';
 import { ADDRESS_ZERO } from '@uniswap/router-sdk';
-import { ChainId, WETH9 } from '@uniswap/sdk-core';
+import { WETH9 } from '@uniswap/sdk-core';
+import { ChainId } from '../../../../../src/globalChainId';
 import { HooksOptions } from '../../../../../src/util/hooksOptions';
 
 describe('compute all v4 routes', () => {

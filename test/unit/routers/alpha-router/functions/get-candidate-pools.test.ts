@@ -1,5 +1,6 @@
 import { ADDRESS_ZERO, Protocol } from '@uniswap/router-sdk';
-import { ChainId, Currency, Token, TradeType } from '@uniswap/sdk-core';
+import { Currency, Token, TradeType } from '@uniswap/sdk-core';
+import { ChainId } from '../../../../../src/globalChainId';
 import { Pair } from '@uniswap/v2-sdk';
 import { encodeSqrtRatioX96, FeeAmount, Pool as V3Pool } from '@uniswap/v3-sdk';
 import { Pool as V4Pool } from '@uniswap/v4-sdk';
@@ -232,7 +233,7 @@ describe('get candidate pools', () => {
           tokenProvider: mockTokenProvider,
           blockedTokenListProvider: mockBlockTokenListProvider,
           chainId: ChainId.MAINNET,
-          }
+        }
         )
 
         expect(
@@ -571,7 +572,7 @@ describe('get candidate pools', () => {
       }
     });
 
-    test(`succeeds to filter out direct swap pools if they dont exist in the subgraph for protocol ${protocol} when HOOKS_ONLY option is requested`, async() => {
+    test(`succeeds to filter out direct swap pools if they dont exist in the subgraph for protocol ${protocol} when HOOKS_ONLY option is requested`, async () => {
       if (protocol === Protocol.V4) {
         // Mock so that DAI_WETH exists on chain, but not in the subgraph
         const poolsOnSubgraph = [
@@ -643,7 +644,7 @@ describe('get candidate pools', () => {
       }
     });
 
-    test(`succeeds to retain direct swap pools if they dont exist in the subgraph for protocol ${protocol} when NO_HOOKS option is requested`, async() => {
+    test(`succeeds to retain direct swap pools if they dont exist in the subgraph for protocol ${protocol} when NO_HOOKS option is requested`, async () => {
       if (protocol === Protocol.V4) {
         // Mock so that DAI_WETH exists on chain, but not in the subgraph
         const poolsOnSubgraph = [
@@ -710,70 +711,70 @@ describe('get candidate pools', () => {
           "tvlETH": 10000,
           "tvlUSD": 10000
         },
-          {
-            "id": "0xf715497ed15f174ca37c77630729f74b95e853a1fdb2c08b7108ca1c9fad1395",
-            "feeTier": "3000",
-            "tickSpacing": "60",
-            "hooks": "0x0000000000000000000000000000000000000000",
-            "liquidity": "10000",
-            "token0": {
-              "id": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-            },
-            "token1": {
-              "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-            },
-            "tvlETH": 10000,
-            "tvlUSD": 10000
+        {
+          "id": "0xf715497ed15f174ca37c77630729f74b95e853a1fdb2c08b7108ca1c9fad1395",
+          "feeTier": "3000",
+          "tickSpacing": "60",
+          "hooks": "0x0000000000000000000000000000000000000000",
+          "liquidity": "10000",
+          "token0": {
+            "id": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
           },
-          {
-            "id": "0x673b67028e33492f08cd23d097b1468bf36a9a53da53fdf0c53c55e26980ca78",
-            "feeTier": "500",
-            "tickSpacing": "10",
-            "hooks": "0x0000000000000000000000000000000000000000",
-            "liquidity": "10000",
-            "token0": {
-              "id": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-            },
-            "token1": {
-              "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-            },
-            "tvlETH": 10000,
-            "tvlUSD": 10000
+          "token1": {
+            "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
           },
-          {
-            "id": "0xb9774d3f1c9cd5c171cd41fbba057d27cd28667eda8d4f64712d00969a84475c",
-            "feeTier": "100",
-            "tickSpacing": "1",
-            "hooks": "0x0000000000000000000000000000000000000000",
-            "liquidity": "10000",
-            "token0": {
-              "id": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-            },
-            "token1": {
-              "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-            },
-            "tvlETH": 10000,
-            "tvlUSD": 10000
+          "tvlETH": 10000,
+          "tvlUSD": 10000
+        },
+        {
+          "id": "0x673b67028e33492f08cd23d097b1468bf36a9a53da53fdf0c53c55e26980ca78",
+          "feeTier": "500",
+          "tickSpacing": "10",
+          "hooks": "0x0000000000000000000000000000000000000000",
+          "liquidity": "10000",
+          "token0": {
+            "id": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
           },
-          {
-            "id": "5",
-            "feeTier": "500",
-            "tickSpacing": "10",
-            "hooks": "0x00001f3b9712708127b1fcad61cb892535951888",
-            "liquidity": "10",
-            "token0": {
-              "id": "0x6b175474e89094c44da98b954eedeac495271d0f"
-            },
-            "token1": {
-              "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-            },
-            "tvlETH": 10,
-            "tvlUSD": 10
-          }])
+          "token1": {
+            "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+          },
+          "tvlETH": 10000,
+          "tvlUSD": 10000
+        },
+        {
+          "id": "0xb9774d3f1c9cd5c171cd41fbba057d27cd28667eda8d4f64712d00969a84475c",
+          "feeTier": "100",
+          "tickSpacing": "1",
+          "hooks": "0x0000000000000000000000000000000000000000",
+          "liquidity": "10000",
+          "token0": {
+            "id": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+          },
+          "token1": {
+            "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+          },
+          "tvlETH": 10000,
+          "tvlUSD": 10000
+        },
+        {
+          "id": "5",
+          "feeTier": "500",
+          "tickSpacing": "10",
+          "hooks": "0x00001f3b9712708127b1fcad61cb892535951888",
+          "liquidity": "10",
+          "token0": {
+            "id": "0x6b175474e89094c44da98b954eedeac495271d0f"
+          },
+          "token1": {
+            "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+          },
+          "tvlETH": 10,
+          "tvlUSD": 10
+        }])
       }
     });
 
-    test(`succeeds to retain direct swap pools if they dont exist in the subgraph for protocol ${protocol} when HOOKS_INCLUSIVE option is requested`, async() => {
+    test(`succeeds to retain direct swap pools if they dont exist in the subgraph for protocol ${protocol} when HOOKS_INCLUSIVE option is requested`, async () => {
       if (protocol === Protocol.V4) {
         // Mock so that DAI_WETH exists on chain, but not in the subgraph
         const poolsOnSubgraph = [

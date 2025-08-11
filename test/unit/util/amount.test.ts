@@ -1,7 +1,7 @@
-import { ChainId } from '@uniswap/sdk-core';
 import { FeeAmount } from '@uniswap/v3-sdk';
-import { parseFeeAmount } from '../../../build/main';
+import { parseFeeAmount } from '../../../src';
 import { getApplicableV3FeeAmounts, unparseFeeAmount } from '../../../src';
+import { ChainId } from '../../../src/globalChainId';
 
 describe('amount', () => {
   it('validate FeeAmount enum helpers', async () => {

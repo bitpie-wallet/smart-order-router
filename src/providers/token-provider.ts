@@ -1,9 +1,10 @@
 import { Interface } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseBytes32String } from '@ethersproject/strings';
-import { ChainId, Token } from '@uniswap/sdk-core';
+import { Token } from '@uniswap/sdk-core';
 import _ from 'lodash';
 
+import { ChainId } from '../globalChainId';
 import { IERC20Metadata__factory } from '../types/v3/factories/IERC20Metadata__factory';
 import { log, WRAPPED_NATIVE_CURRENCY } from '../util';
 
@@ -633,6 +634,14 @@ export const USDC_BASE_GOERLI = new Token(
   'USD Base Coin'
 );
 
+export const USDT_BASE_TRON = new Token(
+  ChainId.TRON,
+  '0xA614F803B6FD780986A42C78EC9C7F77E6DED13C',
+  6,
+  'USDT',
+  'TRC20 USDT'
+);
+
 // Gnosis Tokens
 export const USDC_ETHEREUM_GNOSIS = new Token(
   ChainId.GNOSIS,
@@ -809,7 +818,7 @@ export class TokenProvider implements ITokenProvider {
   constructor(
     private chainId: ChainId,
     protected multicall2Provider: IMulticallProvider
-  ) {}
+  ) { }
 
   private async getTokenSymbol(
     addresses: string[],
@@ -976,10 +985,8 @@ export class TokenProvider implements ITokenProvider {
       }
 
       log.info(
-        `Got token symbol and decimals for ${
-          Object.values(addressToToken).length
-        } out of ${addresses.length} tokens on-chain ${
-          providerConfig ? `as of: ${providerConfig?.blockNumber}` : ''
+        `Got token symbol and decimals for ${Object.values(addressToToken).length
+        } out of ${addresses.length} tokens on-chain ${providerConfig ? `as of: ${providerConfig?.blockNumber}` : ''
         }`
       );
     }

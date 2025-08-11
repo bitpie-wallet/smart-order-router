@@ -28,7 +28,8 @@ import {
 } from '../../../../test-util/mock-data';
 import { BigNumber } from 'ethers';
 import { getMockedV2PoolProvider, getMockedV3PoolProvider } from '../gas-models/test-util/mocked-dependencies';
-import { ChainId, TradeType } from '@uniswap/sdk-core';
+import { TradeType } from '@uniswap/sdk-core';
+import { ChainId } from '../../../../../src/globalChainId';
 import { Trade } from '@uniswap/router-sdk';
 import { Route } from '@uniswap/v3-sdk';
 import { getPools } from '../gas-models/test-util/helpers';

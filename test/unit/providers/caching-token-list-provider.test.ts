@@ -1,4 +1,5 @@
-import { ChainId, Token } from '@uniswap/sdk-core';
+import { Token } from '@uniswap/sdk-core';
+import { ChainId } from '../../../src/globalChainId';
 import _ from 'lodash';
 import sinon from 'sinon';
 import {

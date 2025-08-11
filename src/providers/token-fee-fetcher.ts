@@ -1,9 +1,9 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { BaseProvider } from '@ethersproject/providers';
-import { ChainId } from '@uniswap/sdk-core';
 
-import { TokenFeeDetector__factory } from '../types/other/factories/TokenFeeDetector__factory';
+import { ChainId } from '../globalChainId';
 import { TokenFeeDetector } from '../types/other/TokenFeeDetector';
+import { TokenFeeDetector__factory } from '../types/other/factories/TokenFeeDetector__factory';
 import {
   log,
   metric,

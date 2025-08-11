@@ -1,12 +1,12 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import {
-  ChainId,
   CurrencyAmount as CurrencyAmountRaw,
   Token,
 } from '@uniswap/sdk-core';
 import { Pair } from '@uniswap/v2-sdk';
 import { Pool } from '@uniswap/v3-sdk';
 
+import { ChainId } from '../../../globalChainId';
 import { ProviderConfig } from '../../../providers/provider';
 import {
   CUSD_CELO,
@@ -24,7 +24,6 @@ import {
   DAI_UNICHAIN,
   DAI_ZKSYNC,
   USDB_BLAST,
-  USDCE_ZKSYNC,
   USDC_ARBITRUM,
   USDC_ARBITRUM_GOERLI,
   USDC_ARBITRUM_SEPOLIA,
@@ -56,7 +55,9 @@ import {
   USDC_WORMHOLE_CELO,
   USDC_ZKSYNC,
   USDC_ZORA,
+  USDCE_ZKSYNC,
   USDT_ARBITRUM,
+  USDT_BASE_TRON,
   USDT_BNB,
   USDT_GOERLI,
   USDT_MAINNET,
@@ -135,6 +136,7 @@ export const usdGasTokensByChain: { [chainId in ChainId]?: Token[] } = {
   [ChainId.BASE_SEPOLIA]: [USDC_BASE_SEPOLIA],
   [ChainId.UNICHAIN]: [DAI_UNICHAIN, USDC_UNICHAIN],
   [ChainId.SONEIUM]: [USDC_SONEIUM],
+  [ChainId.TRON]: [USDT_BASE_TRON],
 };
 
 export type L1ToL2GasCosts = {
