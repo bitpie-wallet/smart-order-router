@@ -1,10 +1,10 @@
 import { Protocol } from '@uniswap/router-sdk';
-import { ChainId } from '@uniswap/sdk-core';
 import retry from 'async-retry';
 import Timeout from 'await-timeout';
 import { gql, GraphQLClient } from 'graphql-request';
 import _ from 'lodash';
 
+import { ChainId } from '../../globalChainId';
 import { log, metric } from '../../util';
 import { ProviderConfig } from '../provider';
 import { PAGE_SIZE } from '../subgraph-provider';
@@ -69,10 +69,9 @@ export class EulerSwapHooksSubgraphProvider implements ISubgraphProvider {
     let hooks: EulerSwapHooks[] = [];
 
     log.info(
-      `Getting hooks from the subgraph with page size ${PAGE_SIZE}${
-        providerConfig?.blockNumber
-          ? ` as of block ${providerConfig?.blockNumber}`
-          : ''
+      `Getting hooks from the subgraph with page size ${PAGE_SIZE}${providerConfig?.blockNumber
+        ? ` as of block ${providerConfig?.blockNumber}`
+        : ''
       }.`
     );
 
@@ -225,10 +224,9 @@ export class EulerSwapHooksSubgraphProvider implements ISubgraphProvider {
     let pool: V4SubgraphPool | undefined = undefined;
 
     log.info(
-      `Getting pool by hook from the subgraph with page size ${PAGE_SIZE}${
-        providerConfig?.blockNumber
-          ? ` as of block ${providerConfig?.blockNumber}`
-          : ''
+      `Getting pool by hook from the subgraph with page size ${PAGE_SIZE}${providerConfig?.blockNumber
+        ? ` as of block ${providerConfig?.blockNumber}`
+        : ''
       }.`
     );
 

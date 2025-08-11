@@ -1,7 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber';
-
 import { Protocol } from '@uniswap/router-sdk';
-import { ChainId, Currency } from '@uniswap/sdk-core';
+import { Currency } from '@uniswap/sdk-core';
+
+import { ChainId } from '../../../globalChainId';
 import { AAVE_MAINNET, LIDO_MAINNET } from '../../../providers';
 import { V3Route, V4Route } from '../../router';
 
@@ -50,6 +51,8 @@ export const BASE_SWAP_COST = (id: ChainId): BigNumber => {
       return BigNumber.from(2000);
     case ChainId.MOONBEAM:
       return BigNumber.from(2000);
+    case ChainId.TRON:
+      return BigNumber.from(0);
   }
 };
 export const COST_PER_INIT_TICK = (id: ChainId): BigNumber => {
@@ -91,6 +94,8 @@ export const COST_PER_INIT_TICK = (id: ChainId): BigNumber => {
       return BigNumber.from(31000);
     case ChainId.MOONBEAM:
       return BigNumber.from(31000);
+    case ChainId.TRON:
+      return BigNumber.from(0);
   }
 };
 
@@ -132,6 +137,8 @@ export const COST_PER_HOP = (id: ChainId): BigNumber => {
       return BigNumber.from(80000);
     case ChainId.MOONBEAM:
       return BigNumber.from(80000);
+    case ChainId.TRON:
+      return BigNumber.from(0);
   }
 };
 

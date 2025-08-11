@@ -1,5 +1,5 @@
+import { ADDRESS_ZERO } from '@uniswap/router-sdk';
 import {
-  ChainId,
   CHAIN_TO_ADDRESSES_MAP,
   Currency,
   SWAP_ROUTER_02_ADDRESSES as SWAP_ROUTER_02_ADDRESSES_HELPER,
@@ -8,8 +8,47 @@ import {
 } from '@uniswap/sdk-core';
 import { FACTORY_ADDRESS } from '@uniswap/v3-sdk';
 
-import { ADDRESS_ZERO } from '@uniswap/router-sdk';
+import { ChainId } from '../globalChainId';
+
 import { NETWORKS_WITH_SAME_UNISWAP_ADDRESSES } from './chains';
+
+
+
+
+interface ExtendedChainAddresses {
+  v3CoreFactoryAddress: string;
+  multicallAddress: string;
+  quoterAddress: string;
+  v3MigratorAddress?: string;
+  nonfungiblePositionManagerAddress?: string;
+  tickLensAddress?: string;
+  swapRouter02Address?: string;
+  mixedRouteQuoterV1Address?: string;
+  mixedRouteQuoterV2Address?: string;
+  v4PoolManagerAddress?: string;
+  v4PositionManagerAddress?: string;
+  v4StateView?: string;
+  v4QuoterAddress?: string;
+}
+
+export const EXTENDED_CHAIN_TO_ADDRESSES_MAP: Partial<Record<ChainId, ExtendedChainAddresses>> = {
+  ...CHAIN_TO_ADDRESSES_MAP,
+  [ChainId.TRON]: {
+    v3CoreFactoryAddress: '0xC2708485C99CD8CF058DE1A9A7E3C2D8261A995C',
+    multicallAddress: '0x0000000000000000000000000000000000000000',
+    quoterAddress: '0x75B377BBEE16C0866C2D6F2C3E2E649617ED14DD',
+    v3MigratorAddress: undefined,
+    nonfungiblePositionManagerAddress: '0x72DB65B2E023E4783D46023E7135C692E527F6CB',
+    tickLensAddress: '0x0D56963D70629A59F14FFD94B314E3E0B06A04B2',
+    swapRouter02Address: '0x9BC8FBECBA5D240B977B6FD4E9AC25B0012EF843',
+    mixedRouteQuoterV1Address: undefined,
+    mixedRouteQuoterV2Address: undefined,
+    v4PoolManagerAddress: undefined,
+    v4PositionManagerAddress: undefined,
+    v4StateView: undefined,
+    v4QuoterAddress: undefined,
+  },
+};
 
 export const BNB_TICK_LENS_ADDRESS =
   CHAIN_TO_ADDRESSES_MAP[ChainId.BNB].tickLensAddress;
@@ -57,6 +96,7 @@ export const V3_CORE_FACTORY_ADDRESSES: AddressMap = {
     CHAIN_TO_ADDRESSES_MAP[ChainId.UNICHAIN].v3CoreFactoryAddress,
   [ChainId.SONEIUM]:
     CHAIN_TO_ADDRESSES_MAP[ChainId.SONEIUM].v3CoreFactoryAddress,
+  [ChainId.TRON]: EXTENDED_CHAIN_TO_ADDRESSES_MAP[ChainId.TRON]?.v3CoreFactoryAddress,
 };
 
 export const QUOTER_V2_ADDRESSES: AddressMap = {
@@ -92,6 +132,7 @@ export const QUOTER_V2_ADDRESSES: AddressMap = {
   // TODO: Gnosis + Moonbeam contracts to be deployed
   [ChainId.UNICHAIN]: CHAIN_TO_ADDRESSES_MAP[ChainId.UNICHAIN].quoterAddress,
   [ChainId.SONEIUM]: CHAIN_TO_ADDRESSES_MAP[ChainId.SONEIUM].quoterAddress,
+  [ChainId.TRON]: EXTENDED_CHAIN_TO_ADDRESSES_MAP[ChainId.TRON]?.quoterAddress,
 };
 
 export const NEW_QUOTER_V2_ADDRESSES: AddressMap = {
@@ -118,6 +159,7 @@ export const NEW_QUOTER_V2_ADDRESSES: AddressMap = {
     CHAIN_TO_ADDRESSES_MAP[ChainId.BASE_SEPOLIA].quoterAddress,
   [ChainId.UNICHAIN]: CHAIN_TO_ADDRESSES_MAP[ChainId.UNICHAIN].quoterAddress, // TODO: deploy view-only-quoter to unichain
   [ChainId.SONEIUM]: CHAIN_TO_ADDRESSES_MAP[ChainId.SONEIUM].quoterAddress,
+  [ChainId.TRON]: EXTENDED_CHAIN_TO_ADDRESSES_MAP[ChainId.TRON]?.quoterAddress,
 };
 
 export const PROTOCOL_V4_QUOTER_ADDRESSES: AddressMap = {
@@ -277,8 +319,10 @@ export const WETH9: {
     | ChainId.BNB
     | ChainId.AVALANCHE
     | ChainId.MONAD_TESTNET
-    // TODO: remove ROOTSTOCK once we support both at the routing level
     | ChainId.ROOTSTOCK
+    | ChainId.TRON
+    | ChainId.ZORA_SEPOLIA
+  // TODO: remove ROOTSTOCK once we support both at the routing level
   >]: Token;
 } = {
   [ChainId.MAINNET]: WETH9_HELPER[ChainId.MAINNET]!,
@@ -312,13 +356,6 @@ export const WETH9: {
   [ChainId.BASE]: WETH9_HELPER[ChainId.BASE]!,
   [ChainId.BLAST]: WETH9_HELPER[ChainId.BLAST]!,
   [ChainId.ZORA]: WETH9_HELPER[ChainId.ZORA]!,
-  [ChainId.ZORA_SEPOLIA]: new Token(
-    ChainId.ZORA_SEPOLIA,
-    '0x4200000000000000000000000000000000000006',
-    18,
-    'WETH',
-    'Wrapped Ether'
-  ),
   [ChainId.ZKSYNC]: WETH9_HELPER[ChainId.ZKSYNC]!,
   [ChainId.WORLDCHAIN]: WETH9_HELPER[ChainId.WORLDCHAIN]!,
   [ChainId.UNICHAIN_SEPOLIA]: WETH9_HELPER[ChainId.UNICHAIN_SEPOLIA]!,

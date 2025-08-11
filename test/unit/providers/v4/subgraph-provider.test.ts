@@ -1,4 +1,4 @@
-import { ChainId } from '@uniswap/sdk-core';
+import { ChainId } from '../../../../src/globalChainId';
 import dotenv from 'dotenv';
 import { GraphQLClient } from 'graphql-request';
 import sinon from 'sinon';
@@ -27,7 +27,7 @@ describe('SubgraphProvider V4', () => {
   let requestStub: sinon.SinonStub;
   let subgraphProvider: V4SubgraphProvider;
 
-  beforeEach(() => {});
+  beforeEach(() => { });
 
   afterEach(() => {
     sinon.restore();

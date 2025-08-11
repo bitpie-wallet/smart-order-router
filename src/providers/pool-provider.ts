@@ -1,10 +1,13 @@
+import { Interface } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ChainId, Currency } from '@uniswap/sdk-core';
+import { Currency } from '@uniswap/sdk-core';
 import { Pool as V3Pool } from '@uniswap/v3-sdk';
 import { Pool as V4Pool } from '@uniswap/v4-sdk';
 import { Options as RetryOptions } from 'async-retry';
 import _ from 'lodash';
 
+import { ChainId } from '../globalChainId';
+import { IUniswapV3PoolState__factory } from '../types/v3/factories/IUniswapV3PoolState__factory';
 import { log, poolToString } from '../util';
 
 import { IMulticallProvider, Result } from './multicall-provider';
@@ -45,7 +48,7 @@ export abstract class PoolProvider<
       minTimeout: 50,
       maxTimeout: 500,
     }
-  ) {}
+  ) { }
 
   protected async getPoolsInternal(
     poolConstructs: TPoolConstruct[],
@@ -78,24 +81,35 @@ export abstract class PoolProvider<
       `getPools called with ${poolConstructs.length} token pairs. Deduped down to ${poolIdentifierSet.size}`
     );
 
-    const [slot0Results, liquidityResults] = await Promise.all([
-      this.getPoolsData<TISlot0>(
-        sortedPoolIdentifiers,
-        this.getSlot0FunctionName(),
-        providerConfig
-      ),
-      this.getPoolsData<[TILiquidity]>(
-        sortedPoolIdentifiers,
-        this.getLiquidityFunctionName(),
-        providerConfig
-      ),
-    ]);
+    let slot0Results: Result<ISlot0>[];
+    let liquidityResults: Result<[ILiquidity]>[];
+
+    if (this.chainId === ChainId.TRON) {
+      [slot0Results, liquidityResults] = await Promise.all([
+        this.getPoolsDataWithIndividualCalls<ISlot0>(sortedPoolIdentifiers, this.getSlot0FunctionName(), providerConfig),
+        this.getPoolsDataWithIndividualCalls<[ILiquidity]>(sortedPoolIdentifiers, this.getLiquidityFunctionName(), providerConfig),
+      ]);
+    } else {
+      [slot0Results, liquidityResults] = await Promise.all([
+        this.getPoolsData<TISlot0>(
+          sortedPoolIdentifiers,
+          this.getSlot0FunctionName(),
+          providerConfig
+        ),
+        this.getPoolsData<[TILiquidity]>(
+          sortedPoolIdentifiers,
+          this.getLiquidityFunctionName(),
+          providerConfig
+        ),
+      ]);
+    }
+
+
 
     log.info(
-      `Got liquidity and slot0s for ${poolIdentifierSet.size} pools ${
-        providerConfig?.blockNumber
-          ? `as of block: ${providerConfig?.blockNumber}.`
-          : ``
+      `Got liquidity and slot0s for ${poolIdentifierSet.size} pools ${providerConfig?.blockNumber
+        ? `as of block: ${providerConfig?.blockNumber}.`
+        : ``
       }`
     );
 
@@ -123,8 +137,8 @@ export abstract class PoolProvider<
 
       const pool = this.instantiatePool(
         sortedCurrencyPairs[i]!,
-        slot0,
-        liquidity
+        slot0 as unknown as TISlot0,
+        liquidity as unknown as TILiquidity
       );
 
       const poolIdentifier = sortedPoolIdentifiers[i]!;
@@ -163,4 +177,82 @@ export abstract class PoolProvider<
   protected abstract instantiatePoolAccessor(poolIdentifierToPool: {
     [poolId: string]: Pool;
   }): TPoolAccessor;
+
+  private async getPoolsDataWithIndividualCalls<TReturn>(
+    poolAddresses: string[],
+    functionName: string,
+    providerConfig?: ProviderConfig
+  ): Promise<Result<TReturn>[]> {
+    log.info(`Using individual calls for Tron chain due to missing Multicall contract`);
+
+    const contractInterface = IUniswapV3PoolState__factory.createInterface();
+    const blockNumber = providerConfig?.blockNumber ? BigNumber.from(providerConfig.blockNumber) : undefined;
+    const results: Result<TReturn>[] = [];
+
+    // 获取 provider
+    const provider = (this.multicall2Provider as any).provider;
+    if (!provider) {
+      log.warn(`No provider available for individual calls on Tron`);
+      return poolAddresses.map(() => ({ success: false, returnData: '0x' }));
+    }
+
+    for (const poolAddress of poolAddresses) {
+      try {
+        const callData = contractInterface.encodeFunctionData(functionName as any);
+
+        const result = await this.makeIndividualCall<TReturn>(
+          provider,
+          poolAddress,
+          callData,
+          contractInterface,
+          functionName,
+          blockNumber
+        );
+
+        results.push(result);
+      } catch (error) {
+        log.warn(`Failed to get pool data for ${poolAddress}:`, error);
+        results.push({ success: false, returnData: '0x' });
+      }
+    }
+
+    log.debug(`Pool data fetched using individual calls for ${results.length} pools`);
+    return results;
+  }
+
+
+  private async makeIndividualCall<T>(
+    provider: any,
+    address: string,
+    callData: string,
+    contractInterface: Interface,
+    functionName: string,
+    blockNumber?: BigNumber
+  ): Promise<Result<T>> {
+    try {
+      const result = await provider.call({
+        to: address,
+        data: callData,
+        blockTag: blockNumber,
+      });
+
+      if (result === '0x' || result.length <= 2) {
+        return {
+          success: false,
+          returnData: result,
+        };
+      }
+
+      const decoded = contractInterface.decodeFunctionResult(functionName, result);
+      return {
+        success: true,
+        result: decoded as unknown as T,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        returnData: '0x',
+      };
+    }
+  }
 }

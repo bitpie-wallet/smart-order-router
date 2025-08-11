@@ -6,14 +6,15 @@
  */
 import { Protocol } from '@uniswap/router-sdk';
 import {
-  ChainId,
   Currency,
   CurrencyAmount,
   TradeType,
 } from '@uniswap/sdk-core';
+import { ChainId } from '../../../globalChainId';
 
 import { AlphaRouterConfig } from '../../../routers';
 import { SwapOptions } from '../../../routers/router';
+
 import { CacheMode } from './model';
 import { CachedRoutes } from './model/cached-routes';
 

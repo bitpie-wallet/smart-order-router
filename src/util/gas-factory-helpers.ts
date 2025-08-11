@@ -2,7 +2,7 @@ import { estimateL1Gas, estimateL1GasCost } from '@eth-optimism/sdk';
 import { BigNumber } from '@ethersproject/bignumber';
 import { BaseProvider, TransactionRequest } from '@ethersproject/providers';
 import { Protocol } from '@uniswap/router-sdk';
-import { ChainId, Percent, Token, TradeType } from '@uniswap/sdk-core';
+import { Percent, Token, TradeType } from '@uniswap/sdk-core';
 import { UniversalRouterVersion } from '@uniswap/universal-router-sdk';
 import { Pair } from '@uniswap/v2-sdk';
 import { FeeAmount, Pool } from '@uniswap/v3-sdk';
@@ -10,6 +10,7 @@ import brotli from 'brotli';
 import JSBI from 'jsbi';
 import _ from 'lodash';
 
+import { ChainId } from '../globalChainId';
 import { IV2PoolProvider, IV4PoolProvider } from '../providers';
 import { IPortionProvider } from '../providers/portion-provider';
 import { ProviderConfig } from '../providers/provider';
@@ -41,6 +42,7 @@ import {
 
 import { opStackChains } from './l2FeeChains';
 import { buildSwapMethodParameters, buildTrade } from './methodParameters';
+
 
 export async function getV2NativePool(
   token: Token,
@@ -102,7 +104,6 @@ export async function getHighestLiquidityV3NativePool(
       { pools },
       `Could not find a ${nativeCurrency.symbol} pool with ${token.symbol} for computing gas costs.`
     );
-
     return null;
   }
 
@@ -126,8 +127,8 @@ export async function getHighestLiquidityV3USDPool(
       `Could not find a USD token for computing gas costs on ${chainId}`
     );
   }
-
-  const feeAmounts = getApplicableV3FeeAmounts(chainId);
+  const sdkChainId = chainId as any;
+  const feeAmounts = getApplicableV3FeeAmounts(sdkChainId);
 
   const usdPools = _(feeAmounts)
     .flatMap((feeAmount) => {
@@ -264,7 +265,8 @@ export async function calculateGasUsed(
   let l2toL1FeeInWei = BigNumber.from(0);
   // Arbitrum charges L2 gas for L1 calldata posting costs.
   // See https://github.com/Uniswap/smart-order-router/pull/464/files#r1441376802
-  if (opStackChains.includes(chainId)) {
+  const sdkChainId = chainId as any;
+  if (opStackChains.includes(sdkChainId)) {
     l2toL1FeeInWei = (
       await calculateOptimismToL1FeeFromCalldata(
         route.methodParameters!.calldata,
@@ -506,10 +508,10 @@ export function initSwapRouteFromExisting(
 
   const quoteGasAndPortionAdjusted = swapRoute.portionAmount
     ? portionProvider.getQuoteGasAndPortionAdjusted(
-        swapRoute.trade.tradeType,
-        quoteGasAdjusted,
-        swapRoute.portionAmount
-      )
+      swapRoute.trade.tradeType,
+      quoteGasAdjusted,
+      swapRoute.portionAmount
+    )
     : undefined;
   const routesWithValidQuotePortionAdjusted =
     portionProvider.getRouteWithQuotePortionAdjusted(
@@ -533,10 +535,10 @@ export function initSwapRouteFromExisting(
     blockNumber: BigNumber.from(swapRoute.blockNumber),
     methodParameters: swapRoute.methodParameters
       ? ({
-          calldata: swapRoute.methodParameters.calldata,
-          value: swapRoute.methodParameters.value,
-          to: swapRoute.methodParameters.to,
-        } as MethodParameters)
+        calldata: swapRoute.methodParameters.calldata,
+        value: swapRoute.methodParameters.value,
+        to: swapRoute.methodParameters.to,
+      } as MethodParameters)
       : undefined,
     simulationStatus: swapRoute.simulationStatus,
     portionAmount: swapRoute.portionAmount,

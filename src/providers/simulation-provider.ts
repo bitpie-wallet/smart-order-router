@@ -1,7 +1,9 @@
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { ChainId, TradeType } from '@uniswap/sdk-core';
+import { permit2Address } from '@uniswap/permit2-sdk';
+import { TradeType } from '@uniswap/sdk-core';
 import { BigNumber } from 'ethers/lib/ethers';
 
+import { ChainId } from '../globalChainId';
 import {
   GasModelProviderConfig,
   SwapOptions,
@@ -12,8 +14,8 @@ import { Erc20__factory } from '../types/other/factories/Erc20__factory';
 import { Permit2__factory } from '../types/other/factories/Permit2__factory';
 import { CurrencyAmount, log, SWAP_ROUTER_02_ADDRESSES } from '../util';
 
-import { permit2Address } from '@uniswap/permit2-sdk';
 import { IPortionProvider } from './portion-provider';
+
 
 export type SimulationResult = {
   transaction: {

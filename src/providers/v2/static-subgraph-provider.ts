@@ -1,7 +1,8 @@
-import { ChainId, Token } from '@uniswap/sdk-core';
+import { Token } from '@uniswap/sdk-core';
 import { Pair } from '@uniswap/v2-sdk';
 import _ from 'lodash';
 
+import { ChainId } from '../../globalChainId';
 import { WRAPPED_NATIVE_CURRENCY } from '../../util/chains';
 import { log } from '../../util/log';
 import {
@@ -22,7 +23,6 @@ import {
   ETH_BNB,
   OP_OPTIMISM,
   USDB_BLAST,
-  USDCE_ZKSYNC,
   USDC_ARBITRUM,
   USDC_AVAX,
   USDC_BASE,
@@ -38,7 +38,9 @@ import {
   USDC_UNICHAIN_SEPOLIA,
   USDC_WORLDCHAIN,
   USDC_ZKSYNC,
+  USDCE_ZKSYNC,
   USDT_ARBITRUM,
+  USDT_BASE_TRON,
   USDT_BNB,
   USDT_MAINNET,
   USDT_MONAD_TESTNET,
@@ -153,6 +155,7 @@ const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
     USDC_BASE_SEPOLIA,
   ],
   [ChainId.SONEIUM]: [WRAPPED_NATIVE_CURRENCY[ChainId.SONEIUM]!, USDC_SONEIUM],
+  [ChainId.TRON]: [WRAPPED_NATIVE_CURRENCY[ChainId.TRON]!, USDT_BASE_TRON],
 };
 
 /**
@@ -163,12 +166,12 @@ const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
  * be depended on.
  *
  * Useful for instances where other data sources are unavailable. E.g. subgraph not available.
- *
+ * 
  * @export
  * @class StaticV2SubgraphProvider
  */
 export class StaticV2SubgraphProvider implements IV2SubgraphProvider {
-  constructor(private chainId: ChainId) {}
+  constructor(private chainId: ChainId) { }
 
   public async getPools(
     tokenIn?: Token,

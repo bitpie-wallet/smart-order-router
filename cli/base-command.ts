@@ -4,7 +4,7 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { Command, flags } from '@oclif/command';
 import { ParserOutput } from '@oclif/parser/lib/parse';
 import DEFAULT_TOKEN_LIST from '@uniswap/default-token-list';
-import { ChainId, Currency, CurrencyAmount, Token } from '@uniswap/sdk-core';
+import { Currency, CurrencyAmount, Token } from '@uniswap/sdk-core';
 import { MethodParameters } from '@uniswap/v3-sdk';
 import bunyan, { default as Logger } from 'bunyan';
 import bunyanDebugStream from 'bunyan-debug-stream';
@@ -19,6 +19,7 @@ import {
   CachingV3PoolProvider,
   CachingV4PoolProvider,
   CHAIN_IDS_LIST,
+  ChainId,
   EIP1559GasPriceProvider,
   EthEstimateGasSimulator,
   FallbackTenderlySimulator,
@@ -403,7 +404,7 @@ export abstract class BaseCommand extends Command {
         Math.min(estimatedGasUsedUSD.currency.decimals, 6)
       )}`
     );
-    if(estimatedGasUsedGasToken) {
+    if (estimatedGasUsedGasToken) {
       this.logger.info(
         `Gas Used gas token: ${estimatedGasUsedGasToken.toFixed(
           Math.min(estimatedGasUsedGasToken.currency.decimals, 6)

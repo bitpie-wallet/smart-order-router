@@ -1,10 +1,11 @@
 import { Protocol } from '@uniswap/router-sdk';
-import { ChainId, Currency, TradeType } from '@uniswap/sdk-core';
+import { Currency, TradeType } from '@uniswap/sdk-core';
 import _ from 'lodash';
 
 import { RouteWithValidQuote, SupportedRoutes } from '../../../../routers';
 
 import { CachedRoute } from './cached-route';
+import { ChainId } from '../../../../globalChainId';
 
 interface CachedRoutesParams {
   routes: CachedRoute<SupportedRoutes>[];

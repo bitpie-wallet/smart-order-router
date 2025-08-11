@@ -1,6 +1,7 @@
 import { Protocol } from '@uniswap/router-sdk';
-import { ChainId, Token } from '@uniswap/sdk-core';
+import { Token } from '@uniswap/sdk-core';
 
+import { ChainId } from '../../globalChainId';
 import { ProviderConfig } from '../provider';
 import { SubgraphProvider } from '../subgraph-provider';
 
@@ -78,8 +79,7 @@ export interface IV3SubgraphProvider {
 
 export class V3SubgraphProvider
   extends SubgraphProvider<V3RawSubgraphPool, V3SubgraphPool>
-  implements IV3SubgraphProvider
-{
+  implements IV3SubgraphProvider {
   constructor(
     chainId: ChainId,
     retries = 2,
