@@ -600,7 +600,8 @@ export class OnChainQuoteProvider implements IOnChainQuoteProvider {
               }
             } else {
               if (this.isSingleHopPath(encodedPath)) {
-                const { tokenIn, tokenOut, fee } = this.parseV3Path(encodedPath);
+                const reversedPath = this.reverseV3Path(encodedPath);
+                const { tokenIn, tokenOut, fee } = this.parseV3Path(reversedPath);
                 result = await callStatic.quoteExactOutputSingle(
                   tokenIn,
                   tokenOut,
@@ -609,8 +610,7 @@ export class OnChainQuoteProvider implements IOnChainQuoteProvider {
                   0
                 );
               } else {
-                const reversedPath = this.reverseV3Path(encodedPath);
-                result = await callStatic.quoteExactOutput(reversedPath, amount);
+                result = await callStatic.quoteExactOutput(encodedPath, amount);
               }
             }
 
