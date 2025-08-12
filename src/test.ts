@@ -4,6 +4,7 @@ import { CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core';
 
 import {
   AlphaRouter,
+  AlphaRouterConfig,
   ChainId
 } from './';
 
@@ -324,7 +325,7 @@ async function main() {
   await testExactOutput();
 
   // 步骤化调试
-  // await debugStepByStep();
+  await debugStepByStep();
 
   console.log('\n🏁 测试完成!');
   console.log('\n📝 总结:');

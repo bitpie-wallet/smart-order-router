@@ -190,7 +190,7 @@ export class V3PoolProvider
         tokenB: token1,
         fee: feeAmount,
         initCodeHashManualOverride: undefined,
-        chainId: this.chainId,
+        chainId: this.chainId as any,
       });
     }
 
