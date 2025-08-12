@@ -523,6 +523,196 @@ export class OnChainQuoteProvider implements IOnChainQuoteProvider {
     }
   }
 
+  private async getQuotesForChain(
+    useMixedRouteQuoter: boolean,
+    mixedRouteContainsV4Pool: boolean,
+    protocol: Protocol,
+    functionName: 'quoteExactInput' | 'quoteExactOutput',
+    inputs: QuoteInputType[],
+    providerConfig: ProviderConfig,
+    gasLimitOverride?: number
+  ) {
+    if (this.chainId === ChainId.TRON) {
+      return this.getTronQuotes(functionName, inputs, providerConfig, gasLimitOverride);
+    }
+
+    return this.consolidateResults(
+      protocol,
+      useMixedRouteQuoter,
+      mixedRouteContainsV4Pool,
+      functionName,
+      inputs,
+      providerConfig,
+      gasLimitOverride
+    );
+  }
+
+  private async getTronQuotes(
+    functionName: 'quoteExactInput' | 'quoteExactOutput',
+    inputs: QuoteInputType[],
+    _providerConfig: ProviderConfig,
+    _gasLimitOverride?: number
+  ) {
+    const { Interface } = await import('@ethersproject/abi');
+    const { Contract } = await import('@ethersproject/contracts');
+
+    const sunswapQuoterInterface = new Interface([
+      'function quoteExactInputSingle(address tokenIn, address tokenOut, uint24 fee, uint256 amountIn, uint160 sqrtPriceLimitX96) external returns (uint256 amountOut)',
+      'function quoteExactInput(bytes path, uint256 amountIn) external returns (uint256 amountOut)',
+      'function quoteExactOutputSingle(address tokenIn, address tokenOut, uint24 fee, uint256 amountOut, uint160 sqrtPriceLimitX96) external returns (uint256 amountIn)',
+      'function quoteExactOutput(bytes path, uint256 amountOut) external returns (uint256 amountIn)'
+    ]);
+
+    try {
+      const quoterContract = new Contract(
+        this.getQuoterAddress(false, false, Protocol.V3),
+        sunswapQuoterInterface,
+        this.provider
+      );
+
+      const results = await Promise.all(
+        inputs.map(async (input) => {
+          try {
+            let encodedPath: string;
+            let amount: string;
+
+            if (Array.isArray(input) && input.length === 2) {
+              [encodedPath, amount] = input as [string, string];
+            } else {
+              throw new Error(`不支持的输入格式: ${JSON.stringify(input)}`);
+            }
+
+            const callStatic = quoterContract.callStatic as any;
+            let result: BigNumber;
+
+            if (functionName === 'quoteExactInput') {
+              if (this.isSingleHopPath(encodedPath)) {
+                const { tokenIn, tokenOut, fee } = this.parseV3Path(encodedPath);
+                result = await callStatic.quoteExactInputSingle(
+                  tokenIn,
+                  tokenOut,
+                  fee,
+                  amount,
+                  0
+                );
+              } else {
+                result = await callStatic.quoteExactInput(encodedPath, amount);
+              }
+            } else {
+              if (this.isSingleHopPath(encodedPath)) {
+                const { tokenIn, tokenOut, fee } = this.parseV3Path(encodedPath);
+                result = await callStatic.quoteExactOutputSingle(
+                  tokenIn,
+                  tokenOut,
+                  fee,
+                  amount,
+                  0
+                );
+              } else {
+                const reversedPath = this.reverseV3Path(encodedPath);
+                result = await callStatic.quoteExactOutput(reversedPath, amount);
+              }
+            }
+
+            return {
+              success: true as const,
+              result: [result] as [BigNumber]
+            };
+          } catch (error) {
+            return {
+              success: false as const,
+              error: error instanceof Error ? error : new Error(String(error)),
+              returnData: '0x'
+            };
+          }
+        })
+      );
+
+      const convertedResults = {
+        results: results.map((result: any) => {
+          if (result.success) {
+            return {
+              success: true as const,
+              result: [
+                result.result[0],
+                [] as BigNumber[],
+                [] as number[],
+                BigNumber.from(0)
+              ] as [BigNumber, BigNumber[], number[], BigNumber]
+            };
+          }
+          return {
+            success: false as const,
+            error: result.error,
+            returnData: '0x'
+          };
+        }),
+        blockNumber: BigNumber.from(0),
+        approxGasUsedPerSuccessCall: 0
+      };
+
+      return convertedResults;
+    } catch (error) {
+      console.error(`❌ TRON Quoter 调用异常:`, error);
+      throw error;
+    }
+  }
+
+  private isSingleHopPath(encodedPath: string): boolean {
+    const path = encodedPath.startsWith('0x') ? encodedPath.slice(2) : encodedPath;
+    return path.length === 86;
+  }
+
+  private reverseV3Path(encodedPath: string): string {
+    const path = encodedPath.startsWith('0x') ? encodedPath.slice(2) : encodedPath;
+
+    const tokens: string[] = [];
+    const fees: string[] = [];
+
+    let offset = 0;
+    while (offset < path.length) {
+      tokens.push(path.slice(offset, offset + 40));
+      offset += 40;
+
+      if (offset < path.length) {
+        fees.push(path.slice(offset, offset + 6));
+        offset += 6;
+      }
+    }
+
+    tokens.reverse();
+
+    let reversedPath = '';
+    for (let i = 0; i < tokens.length; i++) {
+      reversedPath += tokens[i];
+      if (i < fees.length) {
+        reversedPath += fees[fees.length - 1 - i];
+      }
+    }
+
+    return '0x' + reversedPath;
+  }
+
+  private parseV3Path(encodedPath: string): { tokenIn: string; tokenOut: string; fee: number } {
+    const path = encodedPath.startsWith('0x') ? encodedPath.slice(2) : encodedPath;
+
+    if (path.length === 86) {
+      const tokenIn = '0x' + path.slice(0, 40);
+      const feeHex = path.slice(40, 46);
+      const fee = parseInt(feeHex, 16);
+      const tokenOut = '0x' + path.slice(46, 86);
+
+      return { tokenIn, tokenOut, fee };
+    } else {
+      const tokenIn = '0x' + path.slice(0, 40);
+
+      const tokenOut = '0x' + path.slice(path.length - 40);
+
+      const fee = parseInt(path.slice(40, 46), 16);
+
+      return { tokenIn, tokenOut, fee };
+    }
+  }
   private async consolidateResults(
     protocol: Protocol,
     useMixedRouteQuoter: boolean,
@@ -810,10 +1000,10 @@ export class OnChainQuoteProvider implements IOnChainQuoteProvider {
               try {
                 totalCallsMade = totalCallsMade + 1;
 
-                const results = await this.consolidateResults(
-                  protocol,
+                const results = await this.getQuotesForChain(
                   useMixedRouteQuoter,
                   mixedRouteContainsV4Pool,
+                  protocol,
                   functionName,
                   inputs,
                   providerConfig,

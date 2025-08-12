@@ -33,7 +33,7 @@ export abstract class PoolProvider<
   TISlot0 extends ISlot0,
   TILiquidity extends ILiquidity,
   TPoolAccessor
-> {
+  > {
   /**
    * Creates an instance of V4PoolProvider.
    * @param chainId The chain id to use.
@@ -186,7 +186,7 @@ export abstract class PoolProvider<
     log.info(`Using individual calls for Tron chain due to missing Multicall contract`);
 
     const contractInterface = IUniswapV3PoolState__factory.createInterface();
-    const blockNumber = providerConfig?.blockNumber ? BigNumber.from(providerConfig.blockNumber) : undefined;
+    const blockNumber = providerConfig?.blockNumber ? BigNumber.from(await providerConfig.blockNumber) : undefined;
     const results: Result<TReturn>[] = [];
 
     // 获取 provider

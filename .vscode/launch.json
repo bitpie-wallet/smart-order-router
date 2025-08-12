@@ -25,6 +25,48 @@
       "outputCapture": "std",
       "skipFiles": ["<node_internals>/**/*.js"]
       // "smartStep": true
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug TRON Test (test.ts)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--require", "ts-node/register", "--inspect-brk"],
+      "args": ["${workspaceFolder}/src/test.ts"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development",
+        "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json"
+      },
+      "outputCapture": "std",
+      "skipFiles": [
+        "<node_internals>/**/*.js",
+        "${workspaceFolder}/node_modules/**/*.js"
+      ],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "smartStep": true,
+      "stopOnEntry": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug TRON Test (with npx)",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node",
+      "args": ["src/test.ts"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "outputCapture": "std",
+      "skipFiles": [
+        "<node_internals>/**/*.js",
+        "${workspaceFolder}/node_modules/**/*.js"
+      ],
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "smartStep": true,
+      "stopOnEntry": false
     }
   ]
 }

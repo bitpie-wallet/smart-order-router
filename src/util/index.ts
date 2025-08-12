@@ -8,3 +8,4 @@ export * from './metric';
 export * from './pool';
 export * from './protocols';
 export * from './routes';
+export * from './tronPoolAddress';

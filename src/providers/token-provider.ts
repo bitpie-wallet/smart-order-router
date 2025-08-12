@@ -921,74 +921,21 @@ export class TokenProvider implements ITokenProvider {
       .value();
 
     if (addresses.length > 0) {
-      const [symbolsResult, decimalsResult] = await Promise.all([
-        this.getTokenSymbol(addresses, providerConfig),
-        this.getTokenDecimals(addresses, providerConfig),
-      ]);
-
-      const isBytes32 = symbolsResult.isBytes32;
-      const { results: symbols } = symbolsResult.result;
-      const { results: decimals } = decimalsResult;
-
-      for (let i = 0; i < addresses.length; i++) {
-        const address = addresses[i]!;
-
-        const symbolResult = symbols[i];
-        const decimalResult = decimals[i];
-
-        if (!symbolResult?.success || !decimalResult?.success) {
-          log.info(
-            {
-              symbolResult,
-              decimalResult,
-            },
-            `Dropping token with address ${address} as symbol or decimal are invalid`
-          );
-          continue;
-        }
-
-        let symbol;
-
-        try {
-          symbol = isBytes32
-            ? parseBytes32String(symbolResult.result[0]!)
-            : symbolResult.result[0]!;
-        } catch (error) {
-          if (
-            error instanceof Error &&
-            error.message.includes(
-              'invalid bytes32 string - no null terminator'
-            )
-          ) {
-            log.error(
-              {
-                symbolResult,
-                error,
-                address,
-              },
-              `invalid bytes32 string - no null terminator`
-            );
-          }
-
-          throw error;
-        }
-        const decimal = decimalResult.result[0]!;
-
-        addressToToken[address.toLowerCase()] = new Token(
-          this.chainId,
-          address,
-          decimal,
-          symbol
+      if (this.chainId === ChainId.TRON) {
+        await this.getTokensWithIndividualCalls(
+          addresses,
+          addressToToken,
+          symbolToToken,
+          providerConfig
         );
-        symbolToToken[symbol.toLowerCase()] =
-          addressToToken[address.toLowerCase()]!;
+      } else {
+        await this.getTokensWithMulticall(
+          addresses,
+          addressToToken,
+          symbolToToken,
+          providerConfig
+        );
       }
-
-      log.info(
-        `Got token symbol and decimals for ${Object.values(addressToToken).length
-        } out of ${addresses.length} tokens on-chain ${providerConfig ? `as of: ${providerConfig?.blockNumber}` : ''
-        }`
-      );
     }
 
     return {
@@ -1002,6 +949,195 @@ export class TokenProvider implements ITokenProvider {
         return Object.values(addressToToken);
       },
     };
+  }
+
+  private async getTokensWithMulticall(
+    addresses: string[],
+    addressToToken: { [address: string]: Token },
+    symbolToToken: { [symbol: string]: Token },
+    providerConfig?: ProviderConfig
+  ): Promise<void> {
+    const [symbolsResult, decimalsResult] = await Promise.all([
+      this.getTokenSymbol(addresses, providerConfig),
+      this.getTokenDecimals(addresses, providerConfig),
+    ]);
+
+    const isBytes32 = symbolsResult.isBytes32;
+    const { results: symbols } = symbolsResult.result;
+    const { results: decimals } = decimalsResult;
+
+    for (let i = 0; i < addresses.length; i++) {
+      const address = addresses[i]!;
+
+      const symbolResult = symbols[i];
+      const decimalResult = decimals[i];
+
+      if (!symbolResult?.success || !decimalResult?.success) {
+        log.info(
+          {
+            symbolResult,
+            decimalResult,
+          },
+          `Dropping token with address ${address} as symbol or decimal are invalid`
+        );
+        continue;
+      }
+
+      let symbol;
+
+      try {
+        symbol = isBytes32
+          ? parseBytes32String(symbolResult.result[0]!)
+          : symbolResult.result[0]!;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes(
+            'invalid bytes32 string - no null terminator'
+          )
+        ) {
+          log.error(
+            {
+              symbolResult,
+              error,
+              address,
+            },
+            `invalid bytes32 string - no null terminator`
+          );
+        }
+
+        throw error;
+      }
+      const decimal = decimalResult.result[0]!;
+
+      addressToToken[address.toLowerCase()] = new Token(
+        this.chainId,
+        address,
+        decimal,
+        symbol
+      );
+      symbolToToken[symbol.toLowerCase()] =
+        addressToToken[address.toLowerCase()]!;
+    }
+
+    log.info(
+      `Got token symbol and decimals for ${Object.values(addressToToken).length
+      } out of ${addresses.length} tokens on-chain ${providerConfig ? `as of: ${providerConfig?.blockNumber}` : ''
+      }`
+    );
+  }
+
+  private async getTokensWithIndividualCalls(
+    addresses: string[],
+    addressToToken: { [address: string]: Token },
+    symbolToToken: { [symbol: string]: Token },
+    providerConfig?: ProviderConfig
+  ): Promise<void> {
+    log.info(`Using individual calls for Tron chain due to missing Multicall contract`);
+
+    const contractInterface = IERC20Metadata__factory.createInterface();
+    const blockNumber = providerConfig?.blockNumber ? BigNumber.from(providerConfig.blockNumber) : undefined;
+
+    for (const address of addresses) {
+      try {
+        const symbolData = contractInterface.encodeFunctionData('symbol');
+
+        const decimalsData = contractInterface.encodeFunctionData('decimals');
+
+        // 使用 provider 直接调用
+        const provider = (this.multicall2Provider as any).provider;
+        if (!provider) {
+          log.warn(`No provider available for individual calls on Tron`);
+          continue;
+        }
+
+        const symbolResult: Result<[string]> = await this.makeIndividualCall(
+          provider,
+          address,
+          symbolData,
+          contractInterface,
+          'symbol',
+          blockNumber
+        );
+
+        const decimalsResult: Result<[number]> = await this.makeIndividualCall(
+          provider,
+          address,
+          decimalsData,
+          contractInterface,
+          'decimals',
+          blockNumber
+        );
+
+        if (!symbolResult.success || !decimalsResult.success) {
+          log.info(
+            {
+              symbolResult,
+              decimalsResult,
+            },
+            `Dropping token with address ${address} as symbol or decimal are invalid`
+          );
+          continue;
+        }
+
+        const symbol = symbolResult.result[0]!;
+        const decimal = decimalsResult.result[0]!;
+
+        addressToToken[address.toLowerCase()] = new Token(
+          this.chainId,
+          address,
+          decimal,
+          symbol
+        );
+        symbolToToken[symbol.toLowerCase()] =
+          addressToToken[address.toLowerCase()]!;
+
+      } catch (error) {
+        log.warn(`Failed to get token info for ${address}:`, error);
+        continue;
+      }
+    }
+
+    log.info(
+      `Got token symbol and decimals for ${Object.values(addressToToken).length
+      } out of ${addresses.length} tokens on-chain using individual calls ${providerConfig ? `as of: ${providerConfig?.blockNumber}` : ''
+      }`
+    );
+  }
+
+  private async makeIndividualCall<T>(
+    provider: any,
+    address: string,
+    callData: string,
+    contractInterface: Interface,
+    functionName: string,
+    blockNumber?: BigNumber
+  ): Promise<Result<T>> {
+    try {
+      const result = await provider.call({
+        to: address,
+        data: callData,
+        blockTag: blockNumber,
+      });
+
+      if (result === '0x' || result.length <= 2) {
+        return {
+          success: false,
+          returnData: result,
+        };
+      }
+
+      const decoded = contractInterface.decodeFunctionResult(functionName, result);
+      return {
+        success: true,
+        result: decoded as unknown as T,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        returnData: '0x',
+      };
+    }
   }
 }
 
