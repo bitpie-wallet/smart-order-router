@@ -7,6 +7,7 @@ import { ChainId } from '../../globalChainId';
 import { IUniswapV3PoolState__factory } from '../../types/v3/factories/IUniswapV3PoolState__factory';
 import { V3_CORE_FACTORY_ADDRESSES } from '../../util/addresses';
 import { log } from '../../util/log';
+import { computeTronPoolAddress } from '../../util/tronPoolAddress';
 import { IMulticallProvider, Result } from '../multicall-provider';
 import { ILiquidity, ISlot0, PoolProvider } from '../pool-provider';
 import { ProviderConfig } from '../provider';
@@ -67,11 +68,11 @@ export type V3PoolConstruct = [Token, Token, FeeAmount];
 
 export class V3PoolProvider
   extends PoolProvider<
-    Token,
-    V3PoolConstruct,
-    V3ISlot0,
-    V3ILiquidity,
-    V3PoolAccessor
+  Token,
+  V3PoolConstruct,
+  V3ISlot0,
+  V3ILiquidity,
+  V3PoolAccessor
   >
   implements IV3PoolProvider {
   // Computing pool addresses is slow as it requires hashing, encoding etc.
@@ -173,14 +174,25 @@ export class V3PoolProvider
       };
     }
 
-    const poolAddress = computePoolAddress({
-      factoryAddress: V3_CORE_FACTORY_ADDRESSES[this.chainId]!,
-      tokenA: token0,
-      tokenB: token1,
-      fee: feeAmount,
-      initCodeHashManualOverride: undefined,
-      chainId: this.chainId,
-    });
+    let poolAddress: string;
+    if (this.chainId === ChainId.TRON) {
+      poolAddress = computeTronPoolAddress({
+        factoryAddress: V3_CORE_FACTORY_ADDRESSES[this.chainId]!,
+        tokenA: token0,
+        tokenB: token1,
+        fee: feeAmount,
+      });
+      log.info(`✅ Computed Tron pool address: ${poolAddress}`);
+    } else {
+      poolAddress = computePoolAddress({
+        factoryAddress: V3_CORE_FACTORY_ADDRESSES[this.chainId]!,
+        tokenA: token0,
+        tokenB: token1,
+        fee: feeAmount,
+        initCodeHashManualOverride: undefined,
+        chainId: this.chainId,
+      });
+    }
 
     this.POOL_ADDRESS_CACHE[cacheKey] = poolAddress;
 

@@ -159,6 +159,20 @@ export async function getHighestLiquidityV3USDPool(
     .value();
 
   if (pools.length == 0) {
+    if (chainId === ChainId.TRON) {
+      log.warn(`No USD/${wrappedCurrency.symbol} pools found on Tron chain. Using default gas cost calculation.`);
+
+      const defaultPool = new Pool(
+        wrappedCurrency,
+        usdTokens[0]!,
+        FeeAmount.MEDIUM,
+        '0x1000000000000000000000000',
+        '1000000000000000000000000',
+        0
+      );
+
+      return defaultPool;
+    }
     const message = `Could not find a USD/${wrappedCurrency.symbol} pool for computing gas costs.`;
     log.error({ pools }, message);
     throw new Error(message);

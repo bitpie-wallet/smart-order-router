@@ -35,7 +35,7 @@ export const EXTENDED_CHAIN_TO_ADDRESSES_MAP: Partial<Record<ChainId, ExtendedCh
   ...CHAIN_TO_ADDRESSES_MAP,
   [ChainId.TRON]: {
     v3CoreFactoryAddress: '0xC2708485C99CD8CF058DE1A9A7E3C2D8261A995C',
-    multicallAddress: '0x0000000000000000000000000000000000000000',
+    multicallAddress: '0x75B377BBEE16C0866C2D6F2C3E2E649617ED14DD',
     quoterAddress: '0x75B377BBEE16C0866C2D6F2C3E2E649617ED14DD',
     v3MigratorAddress: undefined,
     nonfungiblePositionManagerAddress: '0x72DB65B2E023E4783D46023E7135C692E527F6CB',
@@ -199,6 +199,7 @@ export const MIXED_ROUTE_QUOTER_V1_ADDRESSES: AddressMap = {
   [ChainId.WORLDCHAIN]: '0x204FAca1764B154221e35c0d20aBb3c525710498',
   [ChainId.ZORA]: '0x204FAca1764B154221e35c0d20aBb3c525710498',
   [ChainId.SONEIUM]: '0x42c14CE921e85bf14467A82fAf8182546cf7c604',
+  [ChainId.TRON]: EXTENDED_CHAIN_TO_ADDRESSES_MAP[ChainId.TRON]?.quoterAddress,
 };
 
 export const MIXED_ROUTE_QUOTER_V2_ADDRESSES: AddressMap = {
@@ -251,6 +252,7 @@ export const UNISWAP_MULTICALL_ADDRESSES: AddressMap = {
   // TODO: Gnosis + Moonbeam contracts to be deployed
   [ChainId.UNICHAIN]: CHAIN_TO_ADDRESSES_MAP[ChainId.UNICHAIN].multicallAddress,
   [ChainId.SONEIUM]: CHAIN_TO_ADDRESSES_MAP[ChainId.SONEIUM].multicallAddress,
+  [ChainId.TRON]: EXTENDED_CHAIN_TO_ADDRESSES_MAP[ChainId.TRON]?.multicallAddress,
 };
 
 export const SWAP_ROUTER_02_ADDRESSES = (chainId: number): string => {

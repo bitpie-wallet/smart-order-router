@@ -3188,6 +3188,46 @@ export class AlphaRouter
   ): Promise<GasModelType> {
     const beforeGasModel = Date.now();
 
+    if (this.chainId === ChainId.TRON) {
+      log.info('Using fixed gas cost for Tron chain');
+
+      const tronFixedGasCost = CurrencyAmount.fromRawAmount(
+        quoteToken,
+        '0'
+      );
+
+      const tronGasModel = {
+        estimateGasCost: () => ({
+          gasEstimate: BigNumber.from(0),
+          gasCostInToken: tronFixedGasCost,
+          gasCostInUSD: tronFixedGasCost,
+          gasCostInGasToken: undefined,
+        }),
+        calculateL1GasFees: async () => ({
+          gasUsedL1: BigNumber.from(0),
+          gasUsedL1OnL2: BigNumber.from(0),
+          gasCostL1USD: tronFixedGasCost,
+          gasCostL1QuoteToken: tronFixedGasCost,
+        }),
+        calculateL1GasFee: async () => BigNumber.from(0),
+        estimateGasCostInToken: async () => tronFixedGasCost,
+        estimateGasCostInUSD: async () => tronFixedGasCost,
+      };
+
+      metric.putMetric(
+        'GasModelCreation',
+        Date.now() - beforeGasModel,
+        MetricLoggerUnit.Milliseconds
+      );
+
+      return {
+        v2GasModel: tronGasModel,
+        v3GasModel: tronGasModel,
+        v4GasModel: tronGasModel,
+        mixedRouteGasModel: tronGasModel,
+      } as GasModelType;
+    }
+
     const usdPoolPromise = getHighestLiquidityV3USDPool(
       this.chainId,
       this.v3PoolProvider,
