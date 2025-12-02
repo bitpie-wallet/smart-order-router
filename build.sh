@@ -36,17 +36,27 @@ trap "rm -rf $TEMP_DIR" EXIT  # 确保退出时清理临时目录
 
 cp -r build "$TEMP_DIR/"
 cp package.json "$TEMP_DIR/"
+# 复制文档文件
+if [ -f "CHANGELOG.md" ]; then
+  cp CHANGELOG.md "$TEMP_DIR/"
+fi
+if [ -f "README.md" ]; then
+  cp README.md "$TEMP_DIR/"
+fi
+if [ -f "LICENSE" ]; then
+  cp LICENSE "$TEMP_DIR/"
+fi
 
 # 切换到发布分支
-echo "5. 切换到 release 分支..."
-if git show-ref --verify --quiet refs/heads/release; then
-  # release 分支已存在，直接切换
-  echo "   release 分支已存在，切换到该分支..."
-  git checkout release
+echo "5. 切换到 build 分支..."
+if git show-ref --verify --quiet refs/heads/build; then
+  # build 分支已存在，直接切换
+  echo "   build 分支已存在，切换到该分支..."
+  git checkout build
 else
-  # release 分支不存在，创建新分支
-  echo "   release 分支不存在，创建新分支..."
-  git checkout -b release
+  # build 分支不存在，创建新分支
+  echo "   build 分支不存在，创建新分支..."
+  git checkout -b build
 fi
 
 # 清理旧文件（保留 .git 目录）
@@ -61,6 +71,16 @@ find . -mindepth 1 -maxdepth 1 ! -name '.git' -type d -exec rm -rf {} + 2>/dev/n
 echo "7. 复制构建文件..."
 cp -r "$TEMP_DIR/build" ./
 cp "$TEMP_DIR/package.json" ./package.json.bak
+# 复制文档文件
+if [ -f "$TEMP_DIR/CHANGELOG.md" ]; then
+  cp "$TEMP_DIR/CHANGELOG.md" ./
+fi
+if [ -f "$TEMP_DIR/README.md" ]; then
+  cp "$TEMP_DIR/README.md" ./
+fi
+if [ -f "$TEMP_DIR/LICENSE" ]; then
+  cp "$TEMP_DIR/LICENSE" ./
+fi
 
 # 生成发布版 package.json
 echo "8. 生成发布版 package.json..."
@@ -89,6 +109,16 @@ echo "9. 提交更改..."
 # 强制添加 build 目录（即使被 gitignore 忽略）
 git add -f build/
 git add package.json
+# 添加文档文件
+if [ -f "CHANGELOG.md" ]; then
+  git add CHANGELOG.md
+fi
+if [ -f "README.md" ]; then
+  git add README.md
+fi
+if [ -f "LICENSE" ]; then
+  git add LICENSE
+fi
 VERSION=$(node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8')); console.log(pkg.version);")
 COMMIT_MSG="Release v${VERSION} - $(date '+%Y年%m月%d日 %H:%M:%S')"
 # 检查是否有更改需要提交
@@ -101,16 +131,16 @@ fi
 
 echo "10. 推送到远程..."
 # 检查是否有新的提交需要推送
-if git rev-parse --verify origin/release >/dev/null 2>&1; then
+if git rev-parse --verify origin/build >/dev/null 2>&1; then
   # 远程分支存在，检查是否有新提交
-  if git log origin/release..HEAD --oneline 2>/dev/null | grep -q .; then
-    git push origin release || echo "推送失败，请手动推送"
+  if git log origin/build..HEAD --oneline 2>/dev/null | grep -q .; then
+    git push origin build || echo "推送失败，请手动推送"
   else
     echo "   没有新提交需要推送"
   fi
 else
   # 远程分支不存在，直接推送
-  git push -u origin release || echo "推送失败，请手动推送"
+  git push -u origin build || echo "推送失败，请手动推送"
 fi
 
 # 切换回 main 分支
@@ -118,5 +148,5 @@ echo "11. 切换回 main 分支..."
 git checkout main
 
 echo "=== 发布流程完成 ==="
-echo "Release branch updated successfully"
+echo "Build branch updated successfully"
 
