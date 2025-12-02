@@ -731,6 +731,13 @@ function isMatic(
   return chainId === ChainId.POLYGON_MUMBAI || chainId === ChainId.POLYGON;
 }
 
+
+function isTron(
+  chainId: number
+): chainId is ChainId.TRON {
+  return chainId === ChainId.TRON;
+}
+
 class MaticNativeCurrency extends NativeCurrency {
   equals(other: Currency): boolean {
     return other.isNative && other.chainId === this.chainId;
@@ -748,6 +755,26 @@ class MaticNativeCurrency extends NativeCurrency {
   public constructor(chainId: number) {
     if (!isMatic(chainId)) throw new Error('Not matic');
     super(chainId, 18, 'MATIC', 'Polygon Matic');
+  }
+}
+
+class TronNativeCurrency extends NativeCurrency {
+  equals(other: Currency): boolean {
+    return other.isNative && other.chainId === this.chainId;
+  }
+
+  get wrapped(): Token {
+    if (!isTron(this.chainId)) throw new Error('Not tron');
+    const nativeCurrency = WRAPPED_NATIVE_CURRENCY[this.chainId];
+    if (nativeCurrency) {
+      return nativeCurrency;
+    }
+    throw new Error(`Does not support this chain ${this.chainId}`);
+  }
+
+  public constructor(chainId: number) {
+    if (!isTron(chainId)) throw new Error('Not tron');
+    super(chainId, 6, 'TRX', 'Tron');
   }
 }
 
@@ -910,6 +937,8 @@ export function nativeOnChain(chainId: number): NativeCurrency {
     cachedNativeCurrency[chainId] = new BnbNativeCurrency(chainId);
   } else if (isAvax(chainId)) {
     cachedNativeCurrency[chainId] = new AvalancheNativeCurrency(chainId);
+  } else if (isTron(chainId)) {
+    cachedNativeCurrency[chainId] = new TronNativeCurrency(chainId);
   } else {
     cachedNativeCurrency[chainId] = ExtendedEther.onChain(chainId);
   }
