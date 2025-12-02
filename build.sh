@@ -86,7 +86,9 @@ rm -f package.json.bak
 
 # 提交并推送
 echo "9. 提交更改..."
-git add .
+# 强制添加 build 目录（即使被 gitignore 忽略）
+git add -f build/
+git add package.json
 VERSION=$(node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8')); console.log(pkg.version);")
 COMMIT_MSG="Release v${VERSION} - $(date '+%Y年%m月%d日 %H:%M:%S')"
 # 检查是否有更改需要提交
