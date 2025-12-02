@@ -65,7 +65,10 @@ cp "$TEMP_DIR/package.json" ./package.json.bak
 # 生成发布版 package.json
 echo "8. 生成发布版 package.json..."
 node -e "
-const pkg = require('./package.json.bak');
+const fs = require('fs');
+const path = require('path');
+const pkgPath = path.resolve('./package.json.bak');
+const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 const releasePkg = {
   name: pkg.name,
   version: pkg.version,
@@ -75,7 +78,7 @@ const releasePkg = {
   dependencies: pkg.dependencies || {},
   files: ['build/**/*']
 };
-require('fs').writeFileSync('./package.json', JSON.stringify(releasePkg, null, 2));
+fs.writeFileSync('./package.json', JSON.stringify(releasePkg, null, 2));
 "
 
 # 清理临时文件
@@ -84,7 +87,7 @@ rm -f package.json.bak
 # 提交并推送
 echo "9. 提交更改..."
 git add .
-VERSION=$(node -e "console.log(require('./package.json').version)")
+VERSION=$(node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8')); console.log(pkg.version);")
 COMMIT_MSG="Release v${VERSION} - $(date '+%Y年%m月%d日 %H:%M:%S')"
 # 检查是否有更改需要提交
 if ! git diff --cached --quiet || ! git diff --quiet; then
