@@ -5,16 +5,30 @@
 git checkout main
 npm run build
 
+# 检查构建是否成功
+if [ ! -d "build" ] || [ ! -f "package.json" ]; then
+  echo "Error: Build failed or files missing"
+  exit 1
+fi
+
+# 创建临时目录保存构建文件
+TEMP_DIR=$(mktemp -d)
+cp -r build "$TEMP_DIR/"
+cp package.json "$TEMP_DIR/"
+
 # 切换到发布分支
 git checkout release 2>/dev/null || git checkout -b release
 
-# 清理旧文件
+# 清理旧文件（保留 .git 目录）
 git rm -rf . 2>/dev/null || true
-rm -rf ./*
+find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} + 2>/dev/null || true
 
-# 复制构建文件 - 保持原始目录结构
-cp -r build/ ./
-cp package.json ./package.json.bak
+# 从临时目录复制构建文件
+cp -r "$TEMP_DIR/build" ./
+cp "$TEMP_DIR/package.json" ./package.json.bak
+
+# 清理临时目录
+rm -rf "$TEMP_DIR"
 
 # 生成发布版 package.json
 node -e "
@@ -41,4 +55,8 @@ git add .
 git commit -m "Release v$(node -e "console.log(require('./package.json').version)") - $(date)"
 git push origin release
 
+# 切换回 main 分支
+git checkout main
+
 echo "Release branch updated successfully"
+
